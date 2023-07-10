@@ -1,0 +1,11 @@
+README.md
+*.log
+ 
+# ignore aws-sdk
+node_modules/*
+venv/*
+.pytest_cache/*
+ 
+.env
+.git/*
+__tests__/*

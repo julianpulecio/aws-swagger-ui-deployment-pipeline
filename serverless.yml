@@ -1,0 +1,54 @@
+service: aws-swagger-ui-deployment-pipeline
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-python-requirements
+
+custom:
+  dotenv:
+    path: .env
+  pythonRequirements:
+     dockerizePip: non-linux
+
+frameworkVersion: '3'
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: python3.9
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - "s3:*"
+            - "cloudfront:GetDistribution"
+            - "cloudfront:CreateDistributionWithTags"
+            - "cloudfront:UpdateDistribution"
+            - "cloudfront:CreateDistribution"
+            - "cloudfront:TagResource"
+            - "route53:ChangeResourceRecordSets"
+            - "route53:ListHostedZonesByName"
+            - "route53:CreateQueryLoggingConfig"
+            - "route53:ListResourceRecordSets"
+            - "acm:ListCertificates"
+            - "cloudfront:*"
+          Resource:
+            - "arn:aws:s3:::*"
+            - "*"
+
+functions:
+  deploySwaggerUi:
+    handler: src.handler.deploy_swagger_ui
+    timeout: 600
+    environment:
+      S3_BUCKET_NAME: ${env:S3_BUCKET_NAME}
+    events:
+      - s3:
+          bucket: ${env:S3_BUCKET_NAME}
+          event: s3:ObjectCreated:*
+          existing: False
+          retry:
+            maximumRetryAttempts: 10
+            maximumEventAgeInSeconds: 600
